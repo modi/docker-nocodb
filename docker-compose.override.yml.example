@@ -1,0 +1,5 @@
+version: "3"
+services:
+  nocodb:
+    ports:
+      - 18080:8080

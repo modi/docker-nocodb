@@ -1,0 +1,36 @@
+version: "3"
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${X_MYSQL_ROOT_PASSWORD:-root}
+      - LANG=C.UTF-8
+    healthcheck:
+      interval: 3s
+      retries: 10
+      start_period: 10s
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - "-h"
+        - localhost
+      timeout: 3s
+    volumes:
+      - ./_docker/mysql/initdb.d:/docker-entrypoint-initdb.d
+      - ./_docker/mysql/zz-zz.cnf:/etc/mysql/conf.d/zz-zz.cnf
+      - db_data:/var/lib/mysql
+  nocodb:
+    image: "nocodb/nocodb:latest"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NC_DB: "mysql2://db:3306?u=root&p=${X_MYSQL_ROOT_PASSWORD:-root}&d=app"
+    volumes:
+      - nocodb_data:/usr/app/data
+volumes:
+  db_data:
+    driver: local
+  nocodb_data:
+    driver: local
