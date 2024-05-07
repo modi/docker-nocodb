@@ -1,9 +1,5 @@
 # 自用的NocoDB
 
-## 目录结构
-
-    dbdumps/ MySQL备份
-
 ## 参考
 
 - https://github.com/nocodb/nocodb

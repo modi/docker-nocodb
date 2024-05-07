@@ -1,14 +1,16 @@
-version: "3"
 services:
-  db:
+  mysql:
     image: mysql:8.0
     environment:
       - MYSQL_ROOT_PASSWORD=${X_MYSQL_ROOT_PASSWORD:-root}
+      - MYSQL_DATABASE=nocodb
+      - MYSQL_USER=nocodb
+      - MYSQL_PASSWORD=${X_MYSQL_NOCODB_PASSWORD:-nocodb}
       - LANG=C.UTF-8
     healthcheck:
       interval: 3s
-      retries: 10
-      start_period: 10s
+      retries: 30
+      start_period: 3s
       test:
         - CMD
         - mysqladmin
@@ -17,20 +19,20 @@ services:
         - localhost
       timeout: 3s
     volumes:
-      - ./_docker/mysql/initdb.d:/docker-entrypoint-initdb.d
+      # - ./_docker/mysql/initdb.d:/docker-entrypoint-initdb.d
       - ./_docker/mysql/zz-zz.cnf:/etc/mysql/conf.d/zz-zz.cnf
-      - db_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
   nocodb:
-    image: "nocodb/nocodb:latest"
+    image: "nocodb/nocodb:${X_NOCODB_VERSION:-latest}"
     depends_on:
-      db:
+      mysql:
         condition: service_healthy
     environment:
-      NC_DB: "mysql2://db:3306?u=root&p=${X_MYSQL_ROOT_PASSWORD:-root}&d=app"
+      NC_DB: "mysql2://mysql:3306?u=nocodb&p=${X_MYSQL_NOCODB_PASSWORD:-nocodb}&d=nocodb"
     volumes:
       - nocodb_data:/usr/app/data
 volumes:
-  db_data:
+  mysql_data:
     driver: local
   nocodb_data:
     driver: local
