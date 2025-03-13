@@ -18,6 +18,7 @@ services:
         - "-h"
         - localhost
       timeout: 3s
+    restart: unless-stopped
     volumes:
       # - ./_docker/mysql/initdb.d:/docker-entrypoint-initdb.d
       - ./_docker/mysql/zz-zz.cnf:/etc/mysql/conf.d/zz-zz.cnf
@@ -29,6 +30,7 @@ services:
         condition: service_healthy
     environment:
       NC_DB: "mysql2://mysql:3306?u=nocodb&p=${X_MYSQL_NOCODB_PASSWORD:-nocodb}&d=nocodb"
+    restart: unless-stopped
     volumes:
       - nocodb_data:/usr/app/data
 volumes:
