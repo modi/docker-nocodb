@@ -1,40 +1,29 @@
 services:
-  mysql:
-    image: mysql:8.0
+  db:
+    image: postgres:17.2-bookworm
     environment:
-      - MYSQL_ROOT_PASSWORD=${X_MYSQL_ROOT_PASSWORD:-root}
-      - MYSQL_DATABASE=nocodb
-      - MYSQL_USER=nocodb
-      - MYSQL_PASSWORD=${X_MYSQL_NOCODB_PASSWORD:-nocodb}
-      - LANG=C.UTF-8
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: ${X_POSTGRES_DB:-nocodb}
+      POSTGRES_USER: ${X_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${X_POSTGRES_PASSWORD:-NOT_SAFE}
     healthcheck:
+      test: "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""
       interval: 3s
       retries: 30
-      start_period: 3s
-      test:
-        - CMD
-        - mysqladmin
-        - ping
-        - "-h"
-        - localhost
-      timeout: 3s
+      timeout: 1s
     restart: unless-stopped
+    user: ${X_UID:-1000}:${X_GID:-1000}
     volumes:
-      # - ./_docker/mysql/initdb.d:/docker-entrypoint-initdb.d
-      - ./_docker/mysql/zz-zz.cnf:/etc/mysql/conf.d/zz-zz.cnf
-      - mysql_data:/var/lib/mysql
+      - ./postgres/docker.conf:/etc/postgresql/docker.conf
+      - ./_data/postgres:/var/lib/postgresql/data
   nocodb:
     image: "nocodb/nocodb:${X_NOCODB_VERSION:-latest}"
     depends_on:
-      mysql:
+      db:
         condition: service_healthy
     environment:
-      NC_DB: "mysql2://mysql:3306?u=nocodb&p=${X_MYSQL_NOCODB_PASSWORD:-nocodb}&d=nocodb"
+      NC_DB: "pg://db:5432?u=${X_POSTGRES_USER:-postgres}&p=${X_POSTGRES_PASSWORD:-NOT_SAFE}&d=${X_POSTGRES_DB:-nocodb}"
     restart: unless-stopped
+    user: ${X_UID:-1000}:${X_GID:-1000}
     volumes:
-      - nocodb_data:/usr/app/data
-volumes:
-  mysql_data:
-    driver: local
-  nocodb_data:
-    driver: local
+      - ./_data/nocodb:/usr/app/data

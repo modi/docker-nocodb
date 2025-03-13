@@ -1,4 +1,11 @@
-# 自用的NocoDB
+# 基于 Docker Compose 运行 NocoDB
+
+## 安装
+
+参考 `.env.dist` 创建 `.env`，然后执行：
+
+    mkdir _data/{nocodb,postgres}
+    docker compose up -d
 
 ## 参考
 
